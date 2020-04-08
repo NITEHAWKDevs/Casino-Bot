@@ -3,9 +3,10 @@ const Discord = require('discord.js');
 const bot = new Discord.Client();
 const chalk = require('chalk');
 const Package = require('./package.json');
-const XPDB= require('xpdb');
+const XPDB = require('xpdb');
 const db = bot.db = new XPDB('./guildDB');
 const log = require('./log.js');
+const econ = require('./economy.js');
 let Config;
 
 //Get Config Data from config.json
@@ -38,6 +39,10 @@ function checkForCommand(msg) {
 				msg.channel.send(msgTxt);
 			}
 		}
+	} else if(msg.author.id != bot.user.id) {
+		
+		econ.addCoins(msg.author.id, bot, true, null);
+		
 	}
 }
 
@@ -46,8 +51,12 @@ bot.on('ready', () => {
 	log.good('Logged in as ' + chalk.cyan(`${bot.user.tag}`) + '!');
 	require("./modules.js").init();
 	bot.db.get('prefixes').then(prefixes => bot.prefixes = prefixes || {}).catch(err => {
-    	console.error(err);
+    	log.error(err);
     	process.exit(1);
+	});
+	bot.db.get('coins').then(coins => bot.coins = coins || {}).catch(err => {
+		log.error(err);
+		process.exit(1);
 	});
 });
 
